@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common/pipes';
+import { CustomExceptionFilter } from './exceptions/custom-exception-filter';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
@@ -15,6 +16,7 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+  app.useGlobalFilters(new CustomExceptionFilter());
 
   const config = new DocumentBuilder()
     .setTitle('Reservation System')
