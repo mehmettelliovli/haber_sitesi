@@ -1,0 +1,30 @@
+# Template docker-push
+
+# This template allows you to build and push your docker image to a Docker Hub account.
+# The workflow allows running tests, code linting and security scans on feature branches (as well as master).
+# The docker image will be validated and pushed to the docker registry after the code is merged to master.
+
+# Prerequisites: $DOCKERHUB_USERNAME, $DOCKERHUB_PASSWORD, $SFTP_SSHKEY, $SSH_USER, $SERVER setup as deployment variables
+pipelines:
+  branches:
+    main:
+      - step:
+          name: Build and Push
+          script:
+            - IMAGE_NAME="mehmetemintellioglu/nestjs-app"
+            - VERSION="latest"
+            - docker build . --file Dockerfile --tag "${IMAGE_NAME}:${VERSION}"
+            - docker login --username "$DOCKERHUB_USERNAME" --password "$DOCKERHUB_PASSWORD"
+            - docker push "${IMAGE_NAME}:${VERSION}"
+          services:
+            - docker
+      - step:
+          name: Update Service on Server
+          script:
+            - pipe: atlassian/ssh-run:0.3.1
+              variables:
+                SSH_USER: $SSH_USER
+                SERVER: $SERVER
+                COMMAND: 'docker service update --image mehmetemintellioglu/nestjs-app:latest my_stack_nestjs-app'
+          services:
+            - docker
